@@ -4,7 +4,12 @@ from gamedata import GameData
 
 
 def isInside(sprite, mouse_x, mouse_y) -> bool:
-    pass
+    bounds = sprite.getWorldBounds()
+
+    if bounds.v1.x < mouse_x < bounds.v2.x and bounds.v1.y < mouse_y <bounds.v3.y:
+        return True
+
+    return False
 
 
 class MyASGEGame(pyasge.ASGEGame):
@@ -62,10 +67,21 @@ class MyASGEGame(pyasge.ASGEGame):
             return False
 
     def initFish(self) -> bool:
-        pass
+        if self.fish.loadTexture("/data/images/kenney_fishpack/fishTile_073.png"):
+            self.fish.z_order = 1
+            self.fish.scale = 1
+            self.fish.x = 300
+            self.fish.y = 300
+            self.spawn()
+            return True
+
+        return False
 
     def initScoreboard(self) -> None:
-        pass
+        self.scoreboard = pyasge.Text(self.data.fonts["MainFont"])
+        self.scoreboard.x = 1300
+        self.scoreboard.y = 75
+        self.scoreboard.string = str(self.data.score).zfill(6)
 
     def initMenu(self) -> bool:
         self.data.fonts["MainFont"] = self.data.renderer.loadFont("/data/fonts/KGHAPPY.ttf", 64)
@@ -87,7 +103,13 @@ class MyASGEGame(pyasge.ASGEGame):
         return True
 
     def clickHandler(self, event: pyasge.ClickEvent) -> None:
-        pass
+        if event.action == pyasge.MOUSE.BUTTON_PRESSED and \
+           event.button == pyasge.MOUSE.MOUSE_BTN1:
+
+         if isInside(self.fish, event.x, event.y):
+            self.data.score += 1
+            self.scoreboard.string = str(self.data.score).zfill(6)
+            self.spawn()
 
     def keyHandler(self, event: pyasge.KeyEvent) -> None:
 
@@ -114,7 +136,8 @@ class MyASGEGame(pyasge.ASGEGame):
 
 
     def spawn(self) -> None:
-        pass
+        self.fish.x = random.randint(0, self.data.game_res[0] - self.fish.width)
+        self.fish.y = random.randint(0, self.data.game_res[1] - self.fish.height)
 
     def update(self, game_time: pyasge.GameTime) -> None:
 
@@ -127,24 +150,18 @@ class MyASGEGame(pyasge.ASGEGame):
             pass
 
     def render(self, game_time: pyasge.GameTime) -> None:
-        """
-        This is the variable time-step function. Use to update
-        animations and to render the gam    e-world. The use of
-        ``frame_time`` is essential to ensure consistent performance.
-        @param game_time: The tick and frame deltas.
-        """
+        self.data.renderer.render(self.data.background)
 
         if self.menu:
             # render the menu here
             self.data.renderer.render(self.menu_text)
-            self.data.renderer.render(self.data.background)
-
             self.data.renderer.render(self.play_option)
             self.data.renderer.render(self.exit_option)
 
         else:
             # render the game here
-            pass
+            self.data.renderer.render(self.fish)
+            self.data.renderer.render(self.scoreboard)
 
 
 def main():
